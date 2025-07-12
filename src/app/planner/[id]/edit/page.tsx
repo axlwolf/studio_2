@@ -1,7 +1,6 @@
 'use client';
 
 import { PlannerForm } from '@/components/planner-form';
-import { useAuth } from '@/context/auth-context';
 import { getLessonPlan } from '@/services/planner';
 import { LessonPlan } from '@/types';
 import { useEffect, useState } from 'react';
@@ -9,38 +8,26 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 
 export default function EditPlannerPage({ params }: { params: { id: string } }) {
-  const { user } = useAuth();
   const { toast } = useToast();
   const [lessonPlan, setLessonPlan] = useState<LessonPlan | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (user) {
-      setLoading(true);
-      getLessonPlan(params.id)
-        .then((plan) => {
-          if (plan.userId !== user.uid) {
-             toast({
-              title: 'Acceso denegado',
-              description: 'No tienes permiso para editar esta planeación.',
-              variant: 'destructive',
-            });
-            // Optionally redirect
-            return;
-          }
-          setLessonPlan(plan);
-        })
-        .catch((error) => {
-          console.error(error);
-          toast({
-            title: 'Error',
-            description: 'No se pudo cargar la planeación para editar.',
-            variant: 'destructive',
-          });
-        })
-        .finally(() => setLoading(false));
-    }
-  }, [user, params.id, toast]);
+    setLoading(true);
+    getLessonPlan(params.id)
+      .then((plan) => {
+        setLessonPlan(plan);
+      })
+      .catch((error) => {
+        console.error(error);
+        toast({
+          title: 'Error',
+          description: 'No se pudo cargar la planeación para editar.',
+          variant: 'destructive',
+        });
+      })
+      .finally(() => setLoading(false));
+  }, [params.id, toast]);
 
   if (loading) {
     return (
@@ -60,7 +47,7 @@ export default function EditPlannerPage({ params }: { params: { id: string } }) 
   }
 
   if (!lessonPlan) {
-    return <div>Planeación no encontrada o no tienes permiso para verla.</div>;
+    return <div>Planeación no encontrada.</div>;
   }
 
   return <PlannerForm existingPlan={lessonPlan} />;

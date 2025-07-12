@@ -12,9 +12,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useAuth } from '@/context/auth-context';
 import { useEffect, useState } from 'react';
-import { deleteLessonPlan, getLessonPlans } from '@/services/planner';
 import { LessonPlan } from '@/types';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -32,34 +30,52 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 
+const mockLessonPlans: LessonPlan[] = [
+  {
+    id: '1',
+    userId: '1',
+    title: 'El Ciclo del Agua',
+    grade: '3er Grado',
+    subject: 'Ciencias Naturales',
+    duration: '2 semanas',
+    status: 'Completado',
+    lastModified: new Date(new Date().setDate(new Date().getDate() - 5)),
+    activities: [],
+    createdAt: new Date(),
+  },
+  {
+    id: '2',
+    userId: '1',
+    title: 'Introducción a las Fracciones',
+    grade: '4º Grado',
+    subject: 'Matemáticas',
+    duration: '3 sesiones',
+    status: 'Borrador',
+    lastModified: new Date(new Date().setDate(new Date().getDate() - 1)),
+    activities: [],
+    createdAt: new Date(),
+  },
+];
+
 export default function DashboardPage() {
-  const { user } = useAuth();
   const { toast } = useToast();
   const [lessonPlans, setLessonPlans] = useState<LessonPlan[]>([]);
   const [loading, setLoading] = useState(true);
   const [planToDelete, setPlanToDelete] = useState<LessonPlan | null>(null);
 
   useEffect(() => {
-    if (user) {
-      setLoading(true);
-      getLessonPlans(user.uid)
-        .then(setLessonPlans)
-        .catch((err) => {
-          console.error(err);
-          toast({
-            title: 'Error',
-            description: 'No se pudieron cargar las planeaciones.',
-            variant: 'destructive',
-          });
-        })
-        .finally(() => setLoading(false));
-    }
-  }, [user, toast]);
+    setLoading(true);
+    // Simulate fetching data
+    setTimeout(() => {
+      setLessonPlans(mockLessonPlans);
+      setLoading(false);
+    }, 1000);
+  }, []);
   
   const handleDelete = async () => {
     if (!planToDelete || !planToDelete.id) return;
     try {
-      await deleteLessonPlan(planToDelete.id);
+      // Mock deletion
       setLessonPlans((prev) => prev.filter((p) => p.id !== planToDelete.id));
       toast({
         title: 'Planeación eliminada',
@@ -76,14 +92,9 @@ export default function DashboardPage() {
     }
   };
 
-  const formatDate = (timestamp: any) => {
-    if (!timestamp) return 'Fecha desconocida';
-    try {
-      const date = timestamp.toDate();
-      return `Hace ${formatDistanceToNow(date, { locale: es })}`;
-    } catch (e) {
-      return 'Fecha inválida';
-    }
+  const formatDate = (date: Date | undefined) => {
+    if (!date) return 'Fecha desconocida';
+    return `Hace ${formatDistanceToNow(date, { locale: es })}`;
   };
 
   return (
