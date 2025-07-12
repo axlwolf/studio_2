@@ -1,6 +1,3 @@
-
-'use server';
-
 import { LessonPlan } from '@/types';
 
 const DUMMY_PLANS: Omit<LessonPlan, 'id' | 'createdAt' | 'lastModified' | 'userId'>[] = [

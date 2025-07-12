@@ -12,7 +12,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useEffect, useState, useMemo, useCallback } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import type { LessonPlan } from '@/types';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -40,7 +40,7 @@ export default function DashboardPage() {
 
   const searchQuery = searchParams.get('q') || '';
 
-  const loadPlans = useCallback(async () => {
+  const loadPlans = async () => {
     setLoading(true);
     try {
       const plans = await getLessonPlans();
@@ -55,11 +55,11 @@ export default function DashboardPage() {
     } finally {
       setLoading(false);
     }
-  }, [toast]);
+  };
 
   useEffect(() => {
     loadPlans();
-  }, [loadPlans]);
+  }, []);
 
   const filteredLessonPlans = useMemo(() => {
     if (!searchQuery) {
@@ -77,7 +77,6 @@ export default function DashboardPage() {
     if (!planToDelete || !planToDelete.id) return;
     try {
       await deleteLessonPlan(planToDelete.id);
-      // Re-fetch the plans to ensure the list is up-to-date
       await loadPlans();
       toast({
         title: 'Planeación eliminada',
