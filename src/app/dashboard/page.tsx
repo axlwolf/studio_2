@@ -202,10 +202,10 @@ export default function DashboardPage() {
           </>
         ) : (
              <div className="col-span-full flex flex-col items-center justify-center rounded-lg border-2 border-dashed h-64 text-center">
-                <p className="text-muted-foreground mb-4">No se encontraron planeaciones. ¿Los datos de ejemplo no cargaron?</p>
+                <p className="text-muted-foreground mb-4">No se encontraron planeaciones. Los datos de ejemplo pueden no haberse cargado.</p>
                 <Button onClick={loadPlans}>
                     <RefreshCw className="mr-2 h-4 w-4" />
-                    Intentar de nuevo
+                    Volver a cargar
                 </Button>
             </div>
         )}
