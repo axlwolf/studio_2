@@ -1,7 +1,7 @@
 'use client';
 import * as React from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
@@ -14,12 +14,22 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { LayoutGrid, Menu, PenSquare, Search, Settings } from 'lucide-react';
+import { LayoutGrid, LogOut, Menu, PenSquare, Search, Settings } from 'lucide-react';
 import { Logo } from '@/components/logo';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/context/auth-context';
+import { signOut } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { user } = useAuth();
+
+  const handleSignOut = async () => {
+    await signOut(auth);
+    router.push('/login');
+  };
 
   const navItems = [
     { href: '/dashboard', label: 'Dashboard', icon: LayoutGrid },
@@ -92,24 +102,25 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             <DropdownMenuTrigger asChild>
               <Button variant="secondary" size="icon" className="rounded-full">
                 <Avatar>
-                  <AvatarImage src="https://placehold.co/40x40.png" alt="Maestro" data-ai-hint="teacher avatar" />
-                  <AvatarFallback>M</AvatarFallback>
+                  <AvatarImage src={user?.photoURL ?? "https://placehold.co/40x40.png"} alt={user?.displayName ?? "Maestro"} data-ai-hint="teacher avatar" />
+                  <AvatarFallback>{user?.displayName?.charAt(0) ?? 'M'}</AvatarFallback>
                 </Avatar>
                 <span className="sr-only">Toggle user menu</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Mi Cuenta</DropdownMenuLabel>
+              <DropdownMenuLabel>{user?.displayName ?? 'Mi Cuenta'}</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>
-                <Link href="/settings" className="w-full">Perfil</Link>
+              <DropdownMenuItem asChild>
+                <Link href="/settings">Perfil</Link>
               </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Link href="/settings" className="w-full">Configuración</Link>
+              <DropdownMenuItem asChild>
+                <Link href="/settings">Configuración</Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>
-                <Link href="/login" className="w-full">Cerrar Sesión</Link>
+              <DropdownMenuItem onClick={handleSignOut} className="text-destructive focus:text-destructive">
+                <LogOut className="mr-2 h-4 w-4" />
+                Cerrar Sesión
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
