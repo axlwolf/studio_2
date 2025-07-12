@@ -62,6 +62,10 @@ export default function LoginPage() {
               {loading ? 'Iniciando...' : 'Iniciar Sesión'}
             </Button>
           </form>
+          <div className="mt-4 text-center text-sm text-muted-foreground">
+            <p>Usuario: test@test.com</p>
+            <p>Contraseña: 123456</p>
+          </div>
           <div className="mt-4 text-center text-sm">
             ¿No tienes una cuenta?{' '}
             <Link href="/signup" className="underline">
