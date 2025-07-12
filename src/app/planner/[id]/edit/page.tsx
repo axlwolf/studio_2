@@ -7,9 +7,13 @@ import type { LessonPlan } from '@/types';
 import { useEffect, useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
+import { useParams } from 'next/navigation';
 
-export default function EditPlannerPage({ params: { id } }: { params: { id: string } }) {
+export default function EditPlannerPage() {
   const { toast } = useToast();
+  const params = useParams();
+  const id = params.id as string;
+  
   const [lessonPlan, setLessonPlan] = useState<LessonPlan | null>(null);
   const [loading, setLoading] = useState(true);
 
