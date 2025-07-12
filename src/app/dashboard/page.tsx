@@ -12,8 +12,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useEffect, useState } from 'react';
-import { LessonPlan } from '@/types';
+import { useEffect, useState, useMemo } from 'react';
+import type { LessonPlan } from '@/types';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
@@ -27,68 +27,67 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-
-const mockLessonPlans: LessonPlan[] = [
-  {
-    id: '1',
-    userId: '1',
-    title: 'El Ciclo del Agua',
-    grade: '3er Grado',
-    subject: 'Ciencias Naturales',
-    duration: '2 semanas',
-    status: 'Completado',
-    lastModified: new Date(new Date().setDate(new Date().getDate() - 5)),
-    activities: [],
-    createdAt: new Date(),
-  },
-  {
-    id: '2',
-    userId: '1',
-    title: 'Introducción a las Fracciones',
-    grade: '4º Grado',
-    subject: 'Matemáticas',
-    duration: '3 sesiones',
-    status: 'Borrador',
-    lastModified: new Date(new Date().setDate(new Date().getDate() - 1)),
-    activities: [],
-    createdAt: new Date(),
-  },
-];
+import { getLessonPlans, deleteLessonPlan } from '@/services/planner';
+import { useSearchParams } from 'next/navigation';
 
 export default function DashboardPage() {
   const { toast } = useToast();
+  const searchParams = useSearchParams();
   const [lessonPlans, setLessonPlans] = useState<LessonPlan[]>([]);
   const [loading, setLoading] = useState(true);
   const [planToDelete, setPlanToDelete] = useState<LessonPlan | null>(null);
 
+  const searchQuery = searchParams.get('q') || '';
+
   useEffect(() => {
-    setLoading(true);
-    // Simulate fetching data
-    setTimeout(() => {
-      setLessonPlans(mockLessonPlans);
-      setLoading(false);
-    }, 1000);
-  }, []);
-  
+    async function loadPlans() {
+      setLoading(true);
+      try {
+        const plans = await getLessonPlans();
+        setLessonPlans(plans);
+      } catch (error) {
+        toast({
+          title: 'Error',
+          description: 'No se pudieron cargar las planeaciones.',
+          variant: 'destructive',
+        });
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadPlans();
+  }, [toast]);
+
+  const filteredLessonPlans = useMemo(() => {
+    if (!searchQuery) {
+      return lessonPlans;
+    }
+    return lessonPlans.filter(
+      (plan) =>
+        plan.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        plan.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        plan.grade.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [lessonPlans, searchQuery]);
+
   const handleDelete = async () => {
     if (!planToDelete || !planToDelete.id) return;
     try {
-      // Mock deletion
+      await deleteLessonPlan(planToDelete.id);
       setLessonPlans((prev) => prev.filter((p) => p.id !== planToDelete.id));
       toast({
         title: 'Planeación eliminada',
         description: 'La planeación ha sido eliminada con éxito.',
       });
     } catch (error) {
-       toast({
+      toast({
         title: 'Error',
         description: 'No se pudo eliminar la planeación.',
         variant: 'destructive',
       });
     } finally {
-        setPlanToDelete(null);
+      setPlanToDelete(null);
     }
   };
 
@@ -113,23 +112,23 @@ export default function DashboardPage() {
       </div>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {loading ? (
-           Array.from({ length: 4 }).map((_, i) => (
-             <Card key={i}>
-                <CardHeader>
-                    <Skeleton className="h-5 w-3/4 mb-2" />
-                    <Skeleton className="h-4 w-1/2" />
-                </CardHeader>
-                <CardContent>
-                    <div className="flex justify-between">
-                        <Skeleton className="h-6 w-1/4" />
-                        <Skeleton className="h-4 w-1/3" />
-                    </div>
-                </CardContent>
-             </Card>
-           ))
+          Array.from({ length: 4 }).map((_, i) => (
+            <Card key={i}>
+              <CardHeader>
+                <Skeleton className="h-5 w-3/4 mb-2" />
+                <Skeleton className="h-4 w-1/2" />
+              </CardHeader>
+              <CardContent>
+                <div className="flex justify-between">
+                  <Skeleton className="h-6 w-1/4" />
+                  <Skeleton className="h-4 w-1/3" />
+                </div>
+              </CardContent>
+            </Card>
+          ))
         ) : (
           <>
-            {lessonPlans.map((plan) => (
+            {filteredLessonPlans.map((plan) => (
               <Card key={plan.id} className="hover:shadow-lg transition-shadow flex flex-col">
                 <CardHeader>
                   <div className="flex justify-between items-start gap-2">
@@ -154,29 +153,32 @@ export default function DashboardPage() {
                             </Link>
                           </DropdownMenuItem>
                           <AlertDialogTrigger asChild>
-                            <DropdownMenuItem 
+                            <DropdownMenuItem
                               className="text-destructive focus:bg-destructive/10 focus:text-destructive"
-                              onSelect={(e) => { e.preventDefault(); setPlanToDelete(plan); }}
+                              onSelect={(e) => {
+                                e.preventDefault();
+                                setPlanToDelete(plan);
+                              }}
                             >
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                Eliminar
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Eliminar
                             </DropdownMenuItem>
                           </AlertDialogTrigger>
                         </DropdownMenuContent>
                       </DropdownMenu>
-                       <AlertDialogContent>
-                            <AlertDialogHeader>
-                            <AlertDialogTitle>¿Estás seguro de eliminar?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                                Esta acción no se puede deshacer. Esto eliminará permanentemente la planeación
-                                "{planToDelete?.title}".
-                            </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                            <AlertDialogCancel onClick={() => setPlanToDelete(null)}>Cancelar</AlertDialogCancel>
-                            <AlertDialogAction onClick={handleDelete}>Eliminar</AlertDialogAction>
-                            </AlertDialogFooter>
-                        </AlertDialogContent>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>¿Estás seguro de eliminar?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Esta acción no se puede deshacer. Esto eliminará permanentemente la planeación
+                            &quot;{planToDelete?.title}&quot;.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel onClick={() => setPlanToDelete(null)}>Cancelar</AlertDialogCancel>
+                          <AlertDialogAction onClick={handleDelete}>Eliminar</AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
                     </AlertDialog>
                   </div>
                 </CardHeader>

@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useForm, FormProvider } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
@@ -19,6 +19,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useRouter } from 'next/navigation';
 import type { LessonPlan } from '@/types';
 import { generateNemContext } from '@/ai/flows/generate-nem-context';
+import { createLessonPlan, updateLessonPlan } from '@/services/planner';
 
 const plannerFormSchema = z.object({
   title: z.string().min(1, 'El título es requerido'),
@@ -82,7 +83,10 @@ export function PlannerForm({ existingPlan }: PlannerFormProps) {
 
   useEffect(() => {
     if (existingPlan) {
-      form.reset(existingPlan);
+      form.reset({
+        ...existingPlan,
+        activities: existingPlan.activities || []
+      });
     }
   }, [existingPlan, form]);
 
@@ -172,34 +176,38 @@ export function PlannerForm({ existingPlan }: PlannerFormProps) {
   async function onSubmit(data: PlannerFormValues) {
     setIsSaving(true);
     
-    // Mock saving logic
-    setTimeout(() => {
-      try {
-        if (isEditMode) {
-          console.log('Updating plan:', existingPlan?.id, data);
-          toast({
-            title: 'Planeación Actualizada',
-            description: 'Tu planeación ha sido actualizada con éxito.',
-          });
-        } else {
-          console.log('Creating new plan:', data);
-          toast({
-            title: 'Planeación Guardada',
-            description: 'Tu planeación ha sido guardada con éxito.',
-          });
-        }
-        router.push('/dashboard');
-      } catch (error) {
-        console.error(error);
+    try {
+      const planData = {
+        userId: 'local-user', // Placeholder since we removed auth
+        ...data,
+        activities: data.activities || [],
+      };
+
+      if (isEditMode && existingPlan?.id) {
+        await updateLessonPlan(existingPlan.id, planData);
         toast({
-          title: 'Error al guardar',
-          description: 'No se pudo guardar la planeación. Inténtalo de nuevo.',
-          variant: 'destructive',
+          title: 'Planeación Actualizada',
+          description: 'Tu planeación ha sido actualizada con éxito.',
         });
-      } finally {
-        setIsSaving(false);
+      } else {
+        await createLessonPlan(planData);
+        toast({
+          title: 'Planeación Guardada',
+          description: 'Tu planeación ha sido guardada con éxito.',
+        });
       }
-    }, 1000);
+      router.push('/dashboard');
+      router.refresh();
+    } catch (error) {
+      console.error(error);
+      toast({
+        title: 'Error al guardar',
+        description: 'No se pudo guardar la planeación. Inténtalo de nuevo.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   return (

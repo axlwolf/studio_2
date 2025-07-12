@@ -2,7 +2,7 @@
 
 import { PlannerForm } from '@/components/planner-form';
 import { getLessonPlan } from '@/services/planner';
-import { LessonPlan } from '@/types';
+import type { LessonPlan } from '@/types';
 import { useEffect, useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
@@ -13,20 +13,33 @@ export default function EditPlannerPage({ params }: { params: { id: string } }) 
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setLoading(true);
-    getLessonPlan(params.id)
-      .then((plan) => {
-        setLessonPlan(plan);
-      })
-      .catch((error) => {
-        console.error(error);
-        toast({
-          title: 'Error',
-          description: 'No se pudo cargar la planeación para editar.',
-          variant: 'destructive',
-        });
-      })
-      .finally(() => setLoading(false));
+    async function loadPlan() {
+        if (!params.id) return;
+        setLoading(true);
+        try {
+            const plan = await getLessonPlan(params.id);
+            if (plan) {
+                setLessonPlan(plan);
+            } else {
+                 toast({
+                    title: 'Error',
+                    description: 'La planeación no fue encontrada.',
+                    variant: 'destructive',
+                });
+            }
+        } catch (error) {
+            console.error(error);
+            toast({
+            title: 'Error',
+            description: 'No se pudo cargar la planeación para editar.',
+            variant: 'destructive',
+            });
+        } finally {
+            setLoading(false);
+        }
+    }
+    
+    loadPlan();
   }, [params.id, toast]);
 
   if (loading) {

@@ -1,6 +1,6 @@
 
 export type LessonPlan = {
-  id?: string;
+  id: string;
   userId: string;
   title: string;
   grade: string;

@@ -1,7 +1,7 @@
 'use client';
 import * as React from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
@@ -17,9 +17,30 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { LayoutGrid, Menu, PenSquare, Search, Settings } from 'lucide-react';
 import { Logo } from '@/components/logo';
 import { cn } from '@/lib/utils';
+import { useDebounce } from '@/hooks/use-debounce';
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [searchTerm, setSearchTerm] = React.useState(searchParams.get('q') || '');
+  const debouncedSearchTerm = useDebounce(searchTerm, 300);
+
+  React.useEffect(() => {
+    const current = new URLSearchParams(Array.from(searchParams.entries()));
+    if (debouncedSearchTerm) {
+      current.set('q', debouncedSearchTerm);
+    } else {
+      current.delete('q');
+    }
+    const search = current.toString();
+    const query = search ? `?${search}` : '';
+    // Only push router if the path is dashboard to avoid triggering search on other pages
+    if (pathname === '/dashboard') {
+      router.push(`${pathname}${query}`);
+    }
+  }, [debouncedSearchTerm, pathname, router, searchParams]);
+
 
   const navItems = [
     { href: '/dashboard', label: 'Dashboard', icon: LayoutGrid },
@@ -77,13 +98,15 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             </SheetContent>
           </Sheet>
           <div className="w-full flex-1">
-            <form>
+            <form onSubmit={(e) => e.preventDefault()}>
               <div className="relative">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
                   type="search"
                   placeholder="Buscar planeaciones..."
                   className="w-full appearance-none bg-background pl-8 shadow-none md:w-2/3 lg:w-1/3"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
             </form>
