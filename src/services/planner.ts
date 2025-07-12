@@ -57,25 +57,25 @@ const getPlansFromStorage = (): LessonPlan[] => {
   }
   try {
     const plansJson = window.localStorage.getItem('lessonPlans');
-    if (!plansJson) {
-        console.log('No plans found, creating dummy data...');
-        const initialPlans: LessonPlan[] = DUMMY_PLANS.map((plan, index) => ({
-            ...plan,
-            id: `dummy-${index + 1}-${Date.now()}`,
-            userId: 'local-user',
-            createdAt: new Date(),
-            lastModified: new Date(),
-        }));
-        savePlansToStorage(initialPlans);
-        return initialPlans;
-    };
+    if (plansJson) {
+      const plans = JSON.parse(plansJson);
+      return plans.map((plan: any) => ({
+          ...plan,
+          createdAt: new Date(plan.createdAt),
+          lastModified: new Date(plan.lastModified),
+      }));
+    }
     
-    const plans = JSON.parse(plansJson);
-    return plans.map((plan: any) => ({
+    console.log('No plans found in localStorage, creating dummy data...');
+    const initialPlans: LessonPlan[] = DUMMY_PLANS.map((plan, index) => ({
         ...plan,
-        createdAt: new Date(plan.createdAt),
-        lastModified: new Date(plan.lastModified),
+        id: `dummy-${index + 1}-${Date.now()}`,
+        userId: 'local-user',
+        createdAt: new Date(),
+        lastModified: new Date(),
     }));
+    savePlansToStorage(initialPlans);
+    return initialPlans;
 
   } catch (error) {
     console.error('Error reading from localStorage', error);
