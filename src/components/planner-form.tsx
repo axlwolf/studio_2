@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
@@ -217,7 +217,7 @@ export function PlannerForm({ existingPlan }: PlannerFormProps) {
   }
 
   return (
-    <Form {...form}>
+    <FormProvider {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
         <div className="flex items-center justify-between">
           <div className="flex flex-col gap-1">
@@ -520,6 +520,6 @@ export function PlannerForm({ existingPlan }: PlannerFormProps) {
           </div>
         </div>
       </form>
-    </Form>
+    </FormProvider>
   );
 }
