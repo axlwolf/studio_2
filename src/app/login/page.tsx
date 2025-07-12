@@ -1,3 +1,4 @@
+
 'use client';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -25,9 +26,13 @@ export default function LoginPage() {
       await signInWithEmailAndPassword(auth, email, password);
       router.push('/dashboard');
     } catch (error: any) {
+      let errorMessage = 'Ocurrió un error inesperado.';
+      if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+        errorMessage = 'El correo electrónico o la contraseña son incorrectos.';
+      }
       toast({
         title: 'Error al iniciar sesión',
-        description: error.message,
+        description: errorMessage,
         variant: 'destructive',
       });
     } finally {
@@ -62,9 +67,11 @@ export default function LoginPage() {
               {loading ? 'Iniciando...' : 'Iniciar Sesión'}
             </Button>
           </form>
-          <div className="mt-4 text-center text-sm text-muted-foreground">
-            <p>Usuario: test@test.com</p>
-            <p>Contraseña: 123456</p>
+          <div className="mt-4 text-center text-sm text-muted-foreground p-3 bg-muted rounded-md">
+            <p className="font-semibold">Credenciales de Prueba:</p>
+            <p>Usuario: <span className="font-mono">maestro@test.com</span></p>
+            <p>Contraseña: <span className="font-mono">123456</span></p>
+             <p className="text-xs mt-2">Si el usuario no existe, por favor regístralo primero.</p>
           </div>
           <div className="mt-4 text-center text-sm">
             ¿No tienes una cuenta?{' '}

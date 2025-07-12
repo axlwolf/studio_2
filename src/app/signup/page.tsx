@@ -1,3 +1,4 @@
+
 'use client';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -33,9 +34,15 @@ export default function SignupPage() {
       });
       router.push('/dashboard');
     } catch (error: any) {
+      let errorMessage = 'Ocurrió un error inesperado.';
+      if (error.code === 'auth/email-already-in-use') {
+        errorMessage = 'Este correo electrónico ya está en uso. Intenta iniciar sesión.';
+      } else if (error.code === 'auth/weak-password') {
+        errorMessage = 'La contraseña es demasiado débil. Debe tener al menos 6 caracteres.';
+      }
       toast({
         title: 'Error al registrarse',
-        description: error.message,
+        description: errorMessage,
         variant: 'destructive',
       });
     } finally {
