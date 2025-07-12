@@ -20,12 +20,14 @@ import { useRouter } from 'next/navigation';
 import type { LessonPlan } from '@/types';
 import { generateNemContext } from '@/ai/flows/generate-nem-context';
 import { createLessonPlan, updateLessonPlan } from '@/services/planner';
+import { Switch } from '@/components/ui/switch';
 
 const plannerFormSchema = z.object({
   title: z.string().min(1, 'El título es requerido'),
   grade: z.string().min(1, 'El grado es requerido'),
   subject: z.string().min(1, 'La asignatura es requerida'),
   duration: z.string().min(1, 'La duración es requerida'),
+  status: z.enum(['Borrador', 'Completado']),
   contextDiagnosis: z.string().optional(),
   formativeField: z.string().optional(),
   articulatingAxis: z.string().optional(),
@@ -72,6 +74,7 @@ export function PlannerForm({ existingPlan }: PlannerFormProps) {
       grade: '',
       subject: '',
       duration: '1 Sesión',
+      status: 'Borrador',
       contextDiagnosis: '',
       formativeField: '',
       articulatingAxis: '',
@@ -411,7 +414,7 @@ export function PlannerForm({ existingPlan }: PlannerFormProps) {
               name="duration"
               control={form.control}
               render={({ field }) => (
-                <FormItem className="md:col-span-2">
+                <FormItem>
                   <FormLabel>Duración</FormLabel>
                   <FormControl>
                     <Input placeholder="Ej. 2 semanas" {...field} />
@@ -419,6 +422,26 @@ export function PlannerForm({ existingPlan }: PlannerFormProps) {
                   <FormMessage />
                 </FormItem>
               )}
+            />
+            <FormField
+                control={form.control}
+                name="status"
+                render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                        <div className="space-y-0.5">
+                            <FormLabel className="text-base">Marcar como Completado</FormLabel>
+                            <FormMessage />
+                        </div>
+                        <FormControl>
+                            <Switch
+                                checked={field.value === 'Completado'}
+                                onCheckedChange={(checked) => {
+                                    field.onChange(checked ? 'Completado' : 'Borrador');
+                                }}
+                            />
+                        </FormControl>
+                    </FormItem>
+                )}
             />
           </CardContent>
         </Card>
