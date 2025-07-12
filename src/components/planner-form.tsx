@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useForm, FormProvider } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
@@ -217,7 +217,7 @@ export function PlannerForm({ existingPlan }: PlannerFormProps) {
   }
 
   return (
-    <FormProvider {...form}>
+    <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
         <div className="flex items-center justify-between">
           <div className="flex flex-col gap-1">
@@ -285,7 +285,7 @@ export function PlannerForm({ existingPlan }: PlannerFormProps) {
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecciona una asignatura" />
-                      </Trigger>
+                      </SelectTrigger>
                     </FormControl>
                     <SelectContent>
                       {mockSelectOptions.subjects.map((s) => (
@@ -373,7 +373,7 @@ export function PlannerForm({ existingPlan }: PlannerFormProps) {
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecciona un eje" />
-                      </Trigger>
+                      </SelectTrigger>
                     </FormControl>
                     <SelectContent>
                       {mockSelectOptions.articulatingAxes.map((o) => (
@@ -520,6 +520,6 @@ export function PlannerForm({ existingPlan }: PlannerFormProps) {
           </div>
         </div>
       </form>
-    </FormProvider>
+    </Form>
   );
 }
