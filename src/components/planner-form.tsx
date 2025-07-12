@@ -178,7 +178,7 @@ export function PlannerForm({ existingPlan }: PlannerFormProps) {
     
     try {
       const planData = {
-        userId: 'local-user', // Placeholder since we removed auth
+        userId: 'local-user', 
         ...data,
         activities: data.activities || [],
       };
@@ -279,7 +279,7 @@ export function PlannerForm({ existingPlan }: PlannerFormProps) {
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecciona una asignatura" />
-                      </SelectTrigger>
+                      </Trigger>
                     </FormControl>
                     <SelectContent>
                       {mockSelectOptions.subjects.map((s) => (
@@ -343,7 +343,7 @@ export function PlannerForm({ existingPlan }: PlannerFormProps) {
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecciona un campo" />
-                      </SelectTrigger>
+                      </Trigger>
                     </FormControl>
                     <SelectContent>
                       {mockSelectOptions.formativeFields.map((o) => (
@@ -367,7 +367,7 @@ export function PlannerForm({ existingPlan }: PlannerFormProps) {
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecciona un eje" />
-                      </SelectTrigger>
+                      </Trigger>
                     </FormControl>
                     <SelectContent>
                       {mockSelectOptions.articulatingAxes.map((o) => (
