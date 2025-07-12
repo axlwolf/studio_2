@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { MoreVertical, PenSquare, PlusCircle, Trash2, RefreshCw } from 'lucide-react';
+import { MoreVertical, PenSquare, PlusCircle, Trash2 } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,7 +27,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { getLessonPlans, deleteLessonPlan } from '@/services/planner';
 import { useSearchParams } from 'next/navigation';
@@ -47,6 +46,7 @@ export default function DashboardPage() {
       const plans = await getLessonPlans();
       setLessonPlans(plans);
     } catch (error) {
+      console.error('Failed to load lesson plans:', error);
       toast({
         title: 'Error',
         description: 'No se pudieron cargar las planeaciones.',
@@ -77,7 +77,8 @@ export default function DashboardPage() {
     if (!planToDelete || !planToDelete.id) return;
     try {
       await deleteLessonPlan(planToDelete.id);
-      setLessonPlans((prev) => prev.filter((p) => p.id !== planToDelete.id));
+      // Re-fetch the plans to ensure the list is up-to-date
+      await loadPlans();
       toast({
         title: 'Planeación eliminada',
         description: 'La planeación ha sido eliminada con éxito.',

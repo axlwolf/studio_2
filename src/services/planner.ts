@@ -26,6 +26,7 @@ const DUMMY_PLANS: Omit<LessonPlan, 'id' | 'createdAt' | 'lastModified' | 'userI
         subject: 'Lenguajes (Español)',
         duration: '3 Sesiones',
         status: 'Borrador',
+        contextDiagnosis: '',
         formativeField: 'Lenguajes',
         articulatingAxis: 'Apropiación de las culturas a través de la lectura y la escritura',
         content: 'Narraciones de la comunidad y de otros lugares.',
@@ -40,6 +41,7 @@ const DUMMY_PLANS: Omit<LessonPlan, 'id' | 'createdAt' | 'lastModified' | 'userI
         subject: 'Saberes y Pensamiento Científico (Matemáticas)',
         duration: '1 Sesión',
         status: 'Borrador',
+        contextDiagnosis: '',
         formativeField: 'Saberes y Pensamiento Científico',
         articulatingAxis: 'Pensamiento Crítico',
         content: 'Resolución de problemas que implican sumas y restas de fracciones con diferentes denominadores.',
@@ -68,10 +70,9 @@ const getPlansFromStorage = (): LessonPlan[] => {
     }
     
     // If no plans, create and save dummy data
-    console.log('No plans found in localStorage, creating dummy data...');
     const initialPlans: LessonPlan[] = DUMMY_PLANS.map((plan, index) => ({
         ...plan,
-        id: `dummy-${index + 1}-${Date.now()}`,
+        id: `plan-${index + 1}-${Date.now()}`,
         userId: 'local-user',
         createdAt: new Date(),
         lastModified: new Date(),
@@ -99,7 +100,7 @@ const savePlansToStorage = (plans: LessonPlan[]) => {
 // Create
 export async function createLessonPlan(plan: Omit<LessonPlan, 'id' | 'createdAt' | 'lastModified' | 'userId'>): Promise<string> {
   const plans = getPlansFromStorage();
-  const newId = Date.now().toString();
+  const newId = `plan-${Date.now()}`;
   const newPlan: LessonPlan = {
       ...plan,
       id: newId,
@@ -109,20 +110,17 @@ export async function createLessonPlan(plan: Omit<LessonPlan, 'id' | 'createdAt'
   };
   const updatedPlans = [...plans, newPlan];
   savePlansToStorage(updatedPlans);
-  console.log('Creating lesson plan (localStorage):', newPlan);
   return Promise.resolve(newId);
 }
 
 // Read (all)
 export async function getLessonPlans(): Promise<LessonPlan[]> {
-  console.log('Getting all lesson plans from localStorage');
   const plans = getPlansFromStorage();
   return Promise.resolve(plans.sort((a, b) => b.lastModified.getTime() - a.lastModified.getTime()));
 }
 
 // Read (single)
 export async function getLessonPlan(planId: string): Promise<LessonPlan | null> {
-    console.log('Getting single lesson plan from localStorage:', planId);
     const plans = getPlansFromStorage();
     const plan = plans.find(p => p.id === planId);
     if (!plan) {
@@ -134,7 +132,6 @@ export async function getLessonPlan(planId: string): Promise<LessonPlan | null> 
 
 // Update
 export async function updateLessonPlan(planId: string, updates: Partial<Omit<LessonPlan, 'id'| 'createdAt' | 'userId'>>): Promise<void> {
-  console.log('Updating lesson plan (localStorage):', planId, updates);
   let plans = getPlansFromStorage();
   const planIndex = plans.findIndex(p => p.id === planId);
   if (planIndex === -1) {
@@ -151,7 +148,6 @@ export async function updateLessonPlan(planId: string, updates: Partial<Omit<Les
 
 // Delete
 export async function deleteLessonPlan(planId: string): Promise<void> {
-  console.log('Deleting lesson plan (localStorage):', planId);
   let plans = getPlansFromStorage();
   const updatedPlans = plans.filter(p => p.id !== planId);
   if (updatedPlans.length === plans.length) {
