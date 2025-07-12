@@ -1,3 +1,4 @@
+
 'use client';
 
 import { PlannerForm } from '@/components/planner-form';
@@ -7,17 +8,17 @@ import { useEffect, useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 
-export default function EditPlannerPage({ params }: { params: { id: string } }) {
+export default function EditPlannerPage({ params: { id } }: { params: { id: string } }) {
   const { toast } = useToast();
   const [lessonPlan, setLessonPlan] = useState<LessonPlan | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function loadPlan() {
-        if (!params.id) return;
+        if (!id) return;
         setLoading(true);
         try {
-            const plan = await getLessonPlan(params.id);
+            const plan = await getLessonPlan(id);
             if (plan) {
                 setLessonPlan(plan);
             } else {
@@ -40,7 +41,7 @@ export default function EditPlannerPage({ params }: { params: { id: string } }) 
     }
     
     loadPlan();
-  }, [params.id, toast]);
+  }, [id, toast]);
 
   if (loading) {
     return (
