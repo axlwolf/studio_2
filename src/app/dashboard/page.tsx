@@ -5,14 +5,14 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { MoreVertical, PenSquare, PlusCircle, Trash2 } from 'lucide-react';
+import { MoreVertical, PenSquare, PlusCircle, Trash2, RefreshCw } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import type { LessonPlan } from '@/types';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -40,24 +40,25 @@ export default function DashboardPage() {
 
   const searchQuery = searchParams.get('q') || '';
 
-  useEffect(() => {
-    async function loadPlans() {
-      setLoading(true);
-      try {
-        const plans = await getLessonPlans();
-        setLessonPlans(plans);
-      } catch (error) {
-        toast({
-          title: 'Error',
-          description: 'No se pudieron cargar las planeaciones.',
-          variant: 'destructive',
-        });
-      } finally {
-        setLoading(false);
-      }
+  const loadPlans = useCallback(async () => {
+    setLoading(true);
+    try {
+      const plans = await getLessonPlans();
+      setLessonPlans(plans);
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'No se pudieron cargar las planeaciones.',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
     }
-    loadPlans();
   }, [toast]);
+
+  useEffect(() => {
+    loadPlans();
+  }, [loadPlans]);
 
   const filteredLessonPlans = useMemo(() => {
     if (!searchQuery) {
@@ -126,7 +127,7 @@ export default function DashboardPage() {
               </CardContent>
             </Card>
           ))
-        ) : (
+        ) : filteredLessonPlans.length > 0 ? (
           <>
             {filteredLessonPlans.map((plan) => (
               <Card key={plan.id} className="hover:shadow-lg transition-shadow flex flex-col">
@@ -199,6 +200,14 @@ export default function DashboardPage() {
               </Card>
             </Link>
           </>
+        ) : (
+             <div className="col-span-full flex flex-col items-center justify-center rounded-lg border-2 border-dashed h-64 text-center">
+                <p className="text-muted-foreground mb-4">No se encontraron planeaciones. ¿Los datos de ejemplo no cargaron?</p>
+                <Button onClick={loadPlans}>
+                    <RefreshCw className="mr-2 h-4 w-4" />
+                    Intentar de nuevo
+                </Button>
+            </div>
         )}
       </div>
     </>

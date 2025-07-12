@@ -59,6 +59,7 @@ const getPlansFromStorage = (): LessonPlan[] => {
     const plansJson = window.localStorage.getItem('lessonPlans');
     if (plansJson) {
       const plans = JSON.parse(plansJson);
+      // Ensure dates are parsed correctly
       return plans.map((plan: any) => ({
           ...plan,
           createdAt: new Date(plan.createdAt),
@@ -66,6 +67,7 @@ const getPlansFromStorage = (): LessonPlan[] => {
       }));
     }
     
+    // If no plans, create and save dummy data
     console.log('No plans found in localStorage, creating dummy data...');
     const initialPlans: LessonPlan[] = DUMMY_PLANS.map((plan, index) => ({
         ...plan,
