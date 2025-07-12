@@ -27,6 +27,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { getLessonPlans, deleteLessonPlan } from '@/services/planner';
 import { useSearchParams } from 'next/navigation';
@@ -202,11 +203,14 @@ export default function DashboardPage() {
           </>
         ) : (
              <div className="col-span-full flex flex-col items-center justify-center rounded-lg border-2 border-dashed h-64 text-center">
-                <p className="text-muted-foreground mb-4">No se encontraron planeaciones. Los datos de ejemplo pueden no haberse cargado.</p>
-                <Button onClick={loadPlans}>
-                    <RefreshCw className="mr-2 h-4 w-4" />
-                    Volver a cargar
-                </Button>
+                <p className="text-muted-foreground mb-2">No se encontraron planeaciones.</p>
+                 <p className="text-sm text-muted-foreground mb-4">Crea tu primera planeación para comenzar.</p>
+                <Link href="/planner/new">
+                    <Button>
+                        <PlusCircle className="mr-2 h-4 w-4" />
+                        Crear Planeación
+                    </Button>
+                </Link>
             </div>
         )}
       </div>

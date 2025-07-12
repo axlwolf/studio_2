@@ -424,24 +424,22 @@ export function PlannerForm({ existingPlan }: PlannerFormProps) {
               )}
             />
             <FormField
-                control={form.control}
-                name="status"
-                render={({ field }) => (
-                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                        <div className="space-y-0.5">
-                            <FormLabel className="text-base">Marcar como Completado</FormLabel>
-                            <FormMessage />
-                        </div>
-                        <FormControl>
-                            <Switch
-                                checked={field.value === 'Completado'}
-                                onCheckedChange={(checked) => {
-                                    field.onChange(checked ? 'Completado' : 'Borrador');
-                                }}
-                            />
-                        </FormControl>
-                    </FormItem>
-                )}
+              control={form.control}
+              name="status"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                  <div className="space-y-0.5">
+                    <FormLabel className="text-base">Marcar como Completado</FormLabel>
+                    <FormMessage />
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value === 'Completado'}
+                      onCheckedChange={(checked) => field.onChange(checked ? 'Completado' : 'Borrador')}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
             />
           </CardContent>
         </Card>
