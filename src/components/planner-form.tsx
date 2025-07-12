@@ -8,7 +8,7 @@ import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
+import { Input } from './ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
@@ -279,7 +279,7 @@ export function PlannerForm({ existingPlan }: PlannerFormProps) {
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecciona una asignatura" />
-                      </Trigger>
+                      </SelectTrigger>
                     </FormControl>
                     <SelectContent>
                       {mockSelectOptions.subjects.map((s) => (
@@ -343,7 +343,7 @@ export function PlannerForm({ existingPlan }: PlannerFormProps) {
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecciona un campo" />
-                      </Trigger>
+                      </SelectTrigger>
                     </FormControl>
                     <SelectContent>
                       {mockSelectOptions.formativeFields.map((o) => (
@@ -367,7 +367,7 @@ export function PlannerForm({ existingPlan }: PlannerFormProps) {
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecciona un eje" />
-                      </Trigger>
+                      </SelectTrigger>
                     </FormControl>
                     <SelectContent>
                       {mockSelectOptions.articulatingAxes.map((o) => (
