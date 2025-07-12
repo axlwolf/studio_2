@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -16,9 +16,11 @@ import { BrainCircuit, Loader2, Save, Sparkles, Trash2 } from 'lucide-react';
 import { generateActivitySuggestions, GenerateActivitySuggestionsOutput } from '@/ai/flows/generate-activity-suggestions';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { createLessonPlan } from '@/services/planner';
+import { createLessonPlan, updateLessonPlan } from '@/services/planner';
 import { useAuth } from '@/context/auth-context';
 import { useRouter } from 'next/navigation';
+import type { LessonPlan } from '@/types';
+import { generateNemContext } from '@/ai/flows/generate-nem-context';
 
 const plannerFormSchema = z.object({
   title: z.string().min(1, 'El título es requerido'),
@@ -44,19 +46,26 @@ const plannerFormSchema = z.object({
 type PlannerFormValues = z.infer<typeof plannerFormSchema>;
 
 const mockSelectOptions = {
-  grades: ['1er Grado', '2º Grado', '3er Grado'],
-  subjects: ['Español', 'Matemáticas', 'Ciencias', 'Historia', 'Geografía', 'Formación Cívica y Ética'],
+  grades: ['1er Grado', '2º Grado', '3er Grado', '4º Grado', '5º Grado', '6º Grado', 'Secundaria 1er Grado', 'Secundaria 2º Grado', 'Secundaria 3er Grado'],
+  subjects: ['Lenguajes (Español)', 'Saberes y Pensamiento Científico (Matemáticas)', 'Ética, Naturaleza y Sociedades (C. del Medio)', 'De lo Humano y lo Comunitario'],
   formativeFields: ['Lenguajes', 'Saberes y Pensamiento Científico', 'Ética, Naturaleza y Sociedades', 'De lo Humano y lo Comunitario'],
   articulatingAxes: ['Inclusión', 'Pensamiento Crítico', 'Interculturalidad crítica', 'Igualdad de género', 'Vida saludable', 'Apropiación de las culturas a través de la lectura y la escritura', 'Artes y experiencias estéticas'],
 };
 
-export function PlannerForm() {
-  const [isGenerating, setIsGenerating] = useState(false);
+interface PlannerFormProps {
+  existingPlan?: LessonPlan;
+}
+
+export function PlannerForm({ existingPlan }: PlannerFormProps) {
+  const [isGeneratingNem, setIsGeneratingNem] = useState(false);
+  const [isGeneratingActivities, setIsGeneratingActivities] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [aiSuggestions, setAiSuggestions] = useState<GenerateActivitySuggestionsOutput>([]);
   const { toast } = useToast();
   const { user } = useAuth();
   const router = useRouter();
+
+  const isEditMode = !!existingPlan;
 
   const form = useForm<PlannerFormValues>({
     resolver: zodResolver(plannerFormSchema),
@@ -64,12 +73,59 @@ export function PlannerForm() {
       title: '',
       grade: '',
       subject: '',
-      duration: '',
+      duration: '1 Sesión',
+      contextDiagnosis: '',
+      formativeField: '',
+      articulatingAxis: '',
+      content: '',
+      pda: '',
       activities: [],
     },
   });
 
+  useEffect(() => {
+    if (existingPlan) {
+      form.reset(existingPlan);
+    }
+  }, [existingPlan, form]);
+
+
   const watchedValues = form.watch();
+
+  async function handleGenerateNemContext() {
+    const { grade, subject, title } = watchedValues;
+    if (!grade || !subject || !title) {
+      toast({
+        title: 'Faltan datos',
+        description: 'Por favor, completa Título, Grado y Asignatura para generar el contexto.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsGeneratingNem(true);
+    try {
+      const result = await generateNemContext({ grade, subject, topic: title });
+      form.setValue('formativeField', result.formativeField);
+      form.setValue('articulatingAxis', result.articulatingAxis);
+      form.setValue('content', result.content);
+      form.setValue('pda', result.pda);
+      toast({
+        title: 'Contexto NEM Generado',
+        description: 'Se han rellenado los campos de la Nueva Escuela Mexicana.'
+      });
+    } catch (error) {
+       console.error('Error generating NEM context:', error);
+      toast({
+        title: 'Error de IA',
+        description: 'No se pudo generar el contexto NEM. Inténtalo de nuevo.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsGeneratingNem(false);
+    }
+  }
+
 
   async function handleGenerateSuggestions() {
     const { grade, subject, title: topic } = watchedValues;
@@ -82,7 +138,7 @@ export function PlannerForm() {
       return;
     }
 
-    setIsGenerating(true);
+    setIsGeneratingActivities(true);
     setAiSuggestions([]);
 
     try {
@@ -101,7 +157,7 @@ export function PlannerForm() {
         variant: 'destructive',
       });
     } finally {
-      setIsGenerating(false);
+      setIsGeneratingActivities(false);
     }
   }
 
@@ -129,16 +185,24 @@ export function PlannerForm() {
     setIsSaving(true);
     
     try {
-      const newPlan = {
-        ...data,
-        userId: user.uid,
-        activities: data.activities || [],
-      };
-      await createLessonPlan(newPlan);
-      toast({
-        title: 'Planeación Guardada',
-        description: 'Tu planeación ha sido guardada con éxito.',
-      });
+      if (isEditMode && existingPlan?.id) {
+        await updateLessonPlan(existingPlan.id, data);
+        toast({
+          title: 'Planeación Actualizada',
+          description: 'Tu planeación ha sido actualizada con éxito.',
+        });
+      } else {
+        const newPlan = {
+          ...data,
+          userId: user.uid,
+          activities: data.activities || [],
+        };
+        await createLessonPlan(newPlan);
+        toast({
+          title: 'Planeación Guardada',
+          description: 'Tu planeación ha sido guardada con éxito.',
+        });
+      }
       router.push('/dashboard');
     } catch (error) {
       console.error(error);
@@ -157,19 +221,21 @@ export function PlannerForm() {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
         <div className="flex items-center justify-between">
           <div className="flex flex-col gap-1">
-            <h1 className="text-2xl font-bold font-headline tracking-tight">Crear Nueva Planeación</h1>
-            <p className="text-muted-foreground">Llena los campos para crear tu planeación de clase.</p>
+            <h1 className="text-2xl font-bold font-headline tracking-tight">{isEditMode ? 'Editar Planeación' : 'Crear Nueva Planeación'}</h1>
+            <p className="text-muted-foreground">
+              {isEditMode ? 'Modifica los detalles de tu planeación.' : 'Llena los campos para crear tu planeación de clase.'}
+            </p>
           </div>
           <Button type="submit" disabled={isSaving}>
             {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-            {isSaving ? 'Guardando...' : 'Guardar Planeación'}
+            {isSaving ? 'Guardando...' : (isEditMode ? 'Actualizar Planeación' : 'Guardar Planeación')}
           </Button>
         </div>
 
         <Card>
           <CardHeader>
             <CardTitle className="font-headline">Información General</CardTitle>
-            <CardDescription>Datos básicos de la planeación.</CardDescription>
+            <CardDescription>Datos básicos de la planeación. Completa estos campos para activar la IA.</CardDescription>
           </CardHeader>
           <CardContent className="grid gap-6 md:grid-cols-2">
             <FormField
@@ -177,7 +243,7 @@ export function PlannerForm() {
               control={form.control}
               render={({ field }) => (
                 <FormItem className="md:col-span-2">
-                  <FormLabel>Título de la Planeación</FormLabel>
+                  <FormLabel>Título de la Planeación / Tema</FormLabel>
                   <FormControl>
                     <Input placeholder="Ej. El ciclo del agua" {...field} />
                   </FormControl>
@@ -191,7 +257,7 @@ export function PlannerForm() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Grado</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecciona un grado" />
@@ -215,11 +281,11 @@ export function PlannerForm() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Asignatura</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecciona una asignatura" />
-                      </SelectTrigger>
+                      </Trigger>
                     </FormControl>
                     <SelectContent>
                       {mockSelectOptions.subjects.map((s) => (
@@ -233,26 +299,31 @@ export function PlannerForm() {
                 </FormItem>
               )}
             />
-            <FormField
-              name="duration"
-              control={form.control}
-              render={({ field }) => (
-                <FormItem className="md:col-span-2">
-                  <FormLabel>Duración</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Ej. 2 semanas" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle className="font-headline">Diagnóstico y Contexto NEM</CardTitle>
-            <CardDescription>Alineación con la Nueva Escuela Mexicana.</CardDescription>
+             <div className="flex items-center justify-between">
+                <div>
+                    <CardTitle className="font-headline">Diagnóstico y Contexto NEM</CardTitle>
+                    <CardDescription>Alineación con la Nueva Escuela Mexicana. Puedes usar la IA para rellenar.</CardDescription>
+                </div>
+                 <Button
+                    type="button"
+                    onClick={handleGenerateNemContext}
+                    disabled={isGeneratingNem || !watchedValues.title || !watchedValues.grade || !watchedValues.subject}
+                    variant="outline"
+                    className="text-accent-foreground border-accent hover:bg-accent/10 hover:text-accent-foreground"
+                    >
+                    {isGeneratingNem ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                        <Sparkles className="mr-2 h-4 w-4 text-accent" />
+                    )}
+                    Generar Contexto con IA
+                </Button>
+            </div>
           </CardHeader>
           <CardContent className="grid gap-6 md:grid-cols-2">
             <FormField
@@ -262,7 +333,7 @@ export function PlannerForm() {
                 <FormItem className="md:col-span-2">
                   <FormLabel>Diagnóstico del Contexto</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="Describe el contexto del grupo y la comunidad..." {...field} />
+                    <Textarea placeholder="Opcional: Describe el contexto del grupo y la comunidad..." {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -274,7 +345,7 @@ export function PlannerForm() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Campo Formativo</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecciona un campo" />
@@ -298,11 +369,11 @@ export function PlannerForm() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Eje Articulador</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecciona un eje" />
-                      </SelectTrigger>
+                      </Trigger>
                     </FormControl>
                     <SelectContent>
                       {mockSelectOptions.articulatingAxes.map((o) => (
@@ -342,6 +413,19 @@ export function PlannerForm() {
                 </FormItem>
               )}
             />
+             <FormField
+              name="duration"
+              control={form.control}
+              render={({ field }) => (
+                <FormItem className="md:col-span-2">
+                  <FormLabel>Duración</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Ej. 2 semanas" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </CardContent>
         </Card>
 
@@ -356,20 +440,20 @@ export function PlannerForm() {
             <Button
               type="button"
               onClick={handleGenerateSuggestions}
-              disabled={isGenerating}
+              disabled={isGeneratingActivities || !watchedValues.title || !watchedValues.grade || !watchedValues.subject}
               variant="outline"
               className="text-accent-foreground border-accent hover:bg-accent/10 hover:text-accent-foreground"
             >
-              {isGenerating ? (
+              {isGeneratingActivities ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : (
                 <Sparkles className="mr-2 h-4 w-4 text-accent" />
               )}
-              Generar Sugerencias con IA
+              Generar Actividades con IA
             </Button>
           </div>
 
-          {isGenerating && (
+          {isGeneratingActivities && (
             <p className="text-center text-muted-foreground py-8">
               Generando ideas... <Loader2 className="inline-block h-4 w-4 animate-spin" />
             </p>
@@ -429,7 +513,7 @@ export function PlannerForm() {
                 <Sparkles className="h-4 w-4" />
                 <AlertTitle>No hay actividades</AlertTitle>
                 <AlertDescription>
-                  Aún no has añadido ninguna actividad. Usa el generador de IA para obtener ideas.
+                  {isEditMode ? 'Añade actividades a tu planeación.' : 'Aún no has añadido ninguna actividad. Usa el generador de IA para obtener ideas.'}
                 </AlertDescription>
               </Alert>
             )}

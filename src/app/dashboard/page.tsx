@@ -136,9 +136,11 @@ export default function DashboardPage() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem disabled>
-                            <PenSquare className="mr-2 h-4 w-4" />
-                            Editar
+                          <DropdownMenuItem asChild>
+                            <Link href={`/planner/${plan.id}/edit`}>
+                              <PenSquare className="mr-2 h-4 w-4" />
+                              Editar
+                            </Link>
                           </DropdownMenuItem>
                           <AlertDialogTrigger asChild>
                             <DropdownMenuItem 
