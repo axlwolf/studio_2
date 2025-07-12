@@ -1,3 +1,6 @@
+
+import type { Timestamp } from 'firebase/firestore';
+
 export type LessonPlan = {
   id?: string;
   userId: string;
@@ -16,6 +19,6 @@ export type LessonPlan = {
     materials: string;
   }[];
   status: 'Borrador' | 'Completado';
-  createdAt: any; // Firestore timestamp
-  lastModified: any; // Firestore timestamp
+  createdAt: Timestamp;
+  lastModified: Timestamp;
 };

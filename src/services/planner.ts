@@ -1,8 +1,9 @@
+
 'use server';
 
 import { db } from '@/lib/firebase';
 import { LessonPlan } from '@/types';
-import { collection, addDoc, serverTimestamp, query, where, getDocs, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, query, where, getDocs, doc, updateDoc, deleteDoc, orderBy, Timestamp } from 'firebase/firestore';
 
 // Create
 export async function createLessonPlan(plan: Omit<LessonPlan, 'id' | 'createdAt' | 'lastModified' | 'status'>): Promise<string> {
@@ -17,17 +18,24 @@ export async function createLessonPlan(plan: Omit<LessonPlan, 'id' | 'createdAt'
 
 // Read
 export async function getLessonPlans(userId: string): Promise<LessonPlan[]> {
-  const q = query(collection(db, 'lessonPlans'), where('userId', '==', userId));
+  const q = query(collection(db, 'lessonPlans'), where('userId', '==', userId), orderBy('lastModified', 'desc'));
   const querySnapshot = await getDocs(q);
   const plans: LessonPlan[] = [];
   querySnapshot.forEach((doc) => {
-    plans.push({ id: doc.id, ...doc.data() } as LessonPlan);
+    const data = doc.data();
+    plans.push({ 
+        id: doc.id, 
+        ...data,
+        // Ensure timestamps are correctly typed
+        createdAt: data.createdAt as Timestamp,
+        lastModified: data.lastModified as Timestamp,
+    } as LessonPlan);
   });
   return plans;
 }
 
 // Update
-export async function updateLessonPlan(planId: string, updates: Partial<LessonPlan>): Promise<void> {
+export async function updateLessonPlan(planId: string, updates: Partial<Omit<LessonPlan, 'id'| 'createdAt'>>): Promise<void> {
   const planRef = doc(db, 'lessonPlans', planId);
   await updateDoc(planRef, {
     ...updates,
