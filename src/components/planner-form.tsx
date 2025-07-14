@@ -490,7 +490,7 @@ export function PlannerForm({ existingPlan }: PlannerFormProps) {
                       <p className="text-sm">
                         <strong className="font-medium">Materiales:</strong> {suggestion.materials}
                       </p>
-                      <Button size="sm" className="mt-4 w-full" onClick={() => addActivity(suggestion)}>
+                      <Button type="button" size="sm" className="mt-4 w-full" onClick={() => addActivity(suggestion)}>
                         Añadir a la planeación
                       </Button>
                     </CardContent>
@@ -509,7 +509,7 @@ export function PlannerForm({ existingPlan }: PlannerFormProps) {
                       <CardTitle className="text-base font-headline">{activity.title}</CardTitle>
                       <CardDescription>Actividad {index + 1}</CardDescription>
                     </div>
-                    <Button variant="ghost" size="icon" onClick={() => removeActivity(index)}>
+                    <Button type="button" variant="ghost" size="icon" onClick={() => removeActivity(index)}>
                       <Trash2 className="h-4 w-4" />
                       <span className="sr-only">Eliminar actividad</span>
                     </Button>
