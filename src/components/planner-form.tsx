@@ -253,7 +253,7 @@ export function PlannerForm({ existingPlan }: PlannerFormProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Grado</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value || ''}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecciona un grado" />
@@ -277,7 +277,7 @@ export function PlannerForm({ existingPlan }: PlannerFormProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Asignatura</FormLabel>
-                   <Select onValueChange={field.onChange} defaultValue={field.value}>
+                   <Select onValueChange={field.onChange} value={field.value || ''}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecciona una asignatura" />
@@ -341,7 +341,7 @@ export function PlannerForm({ existingPlan }: PlannerFormProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Campo Formativo</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value || ''}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecciona un campo" />
@@ -365,7 +365,7 @@ export function PlannerForm({ existingPlan }: PlannerFormProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Eje Articulador</FormLabel>
-                   <Select onValueChange={field.onChange} defaultValue={field.value}>
+                   <Select onValueChange={field.onChange} value={field.value || ''}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecciona un eje" />
