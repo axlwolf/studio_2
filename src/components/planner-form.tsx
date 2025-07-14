@@ -8,7 +8,7 @@ import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Input } from './ui/input';
+import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
@@ -199,7 +199,7 @@ export function PlannerForm({ existingPlan }: PlannerFormProps) {
         });
       }
       router.push('/dashboard');
-      router.refresh(); // Forzar la actualización de datos en el dashboard
+      router.refresh();
     } catch (error) {
       console.error(error);
       toast({
@@ -369,7 +369,7 @@ export function PlannerForm({ existingPlan }: PlannerFormProps) {
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecciona un eje" />
-                      </Trigger>
+                      </SelectTrigger>
                     </FormControl>
                     <SelectContent>
                       {mockSelectOptions.articulatingAxes.map((o) => (
