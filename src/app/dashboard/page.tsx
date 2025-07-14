@@ -12,7 +12,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import type { LessonPlan } from '@/types';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -41,7 +41,7 @@ export default function DashboardPage() {
 
   const searchQuery = searchParams.get('q') || '';
 
-  const loadPlans = async () => {
+  const loadPlans = useCallback(async () => {
     setLoading(true);
     try {
       const plans = await getLessonPlans();
@@ -56,11 +56,11 @@ export default function DashboardPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
 
   useEffect(() => {
     loadPlans();
-  }, []);
+  }, [loadPlans]);
 
   const filteredLessonPlans = useMemo(() => {
     if (!searchQuery) {
@@ -78,7 +78,7 @@ export default function DashboardPage() {
     if (!planToDelete || !planToDelete.id) return;
     try {
       await deleteLessonPlan(planToDelete.id);
-      await loadPlans();
+      await loadPlans(); // Recargar los planes despues de eliminar
       toast({
         title: 'Planeación eliminada',
         description: 'La planeación ha sido eliminada con éxito.',
@@ -135,12 +135,12 @@ export default function DashboardPage() {
               <Card key={plan.id} className="hover:shadow-lg transition-shadow flex flex-col">
                 <CardHeader>
                   <div className="flex justify-between items-start gap-2">
-                    <div>
-                      <CardTitle className="text-lg font-headline leading-tight">{plan.title}</CardTitle>
+                    <Link href={`/planner/${plan.id}/edit`} className="flex-grow">
+                      <CardTitle className="text-lg font-headline leading-tight hover:text-primary transition-colors">{plan.title}</CardTitle>
                       <CardDescription>
                         {plan.grade} - {plan.subject}
                       </CardDescription>
-                    </div>
+                    </Link>
                     <AlertDialog>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>

@@ -181,7 +181,6 @@ export function PlannerForm({ existingPlan }: PlannerFormProps) {
     
     try {
       const planData = {
-        userId: 'local-user', 
         ...data,
         activities: data.activities || [],
       };
@@ -200,7 +199,7 @@ export function PlannerForm({ existingPlan }: PlannerFormProps) {
         });
       }
       router.push('/dashboard');
-      router.refresh();
+      router.refresh(); // Forzar la actualización de datos en el dashboard
     } catch (error) {
       console.error(error);
       toast({
@@ -370,7 +369,7 @@ export function PlannerForm({ existingPlan }: PlannerFormProps) {
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecciona un eje" />
-                      </SelectTrigger>
+                      </Trigger>
                     </FormControl>
                     <SelectContent>
                       {mockSelectOptions.articulatingAxes.map((o) => (
