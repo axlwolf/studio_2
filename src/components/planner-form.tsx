@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -67,31 +67,27 @@ export function PlannerForm({ existingPlan }: PlannerFormProps) {
 
   const isEditMode = !!existingPlan;
 
-  const form = useForm<PlannerFormValues>({
-    resolver: zodResolver(plannerFormSchema),
-    defaultValues: {
+  const defaultFormValues = existingPlan ? {
+      ...existingPlan,
+      activities: existingPlan.activities || []
+    } : {
       title: '',
       grade: '',
       subject: '',
       duration: '1 Sesión',
-      status: 'Borrador',
+      status: 'Borrador' as 'Borrador' | 'Completado',
       contextDiagnosis: '',
       formativeField: '',
       articulatingAxis: '',
       content: '',
       pda: '',
       activities: [],
-    },
+    };
+  
+  const form = useForm<PlannerFormValues>({
+    resolver: zodResolver(plannerFormSchema),
+    defaultValues: defaultFormValues,
   });
-
-  useEffect(() => {
-    if (existingPlan) {
-      form.reset({
-        ...existingPlan,
-        activities: existingPlan.activities || []
-      });
-    }
-  }, [existingPlan, form]);
 
 
   const watchedValues = form.watch();
